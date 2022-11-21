@@ -10,15 +10,20 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
+import com.plugin.test.data.UserData;
+
 public class Form extends Dialog {
+	UserData userData = new UserData();
 	private Shell shell;
 
 	protected Form(Shell parentShell) {
@@ -28,15 +33,16 @@ public class Form extends Dialog {
 
 	private Text tName;
 	private Button checkBoxLocation;
-	private Label lblLocation;
 	private Text tLocation;
 	private Button buttonLocation;
+	private Label lblLocation;
 	private Text tGroup;
 	private Text tArtifact;
 	private Text tVersion;
 	private Text tDiscription;
 	private Text tPackageName;
-	private Text tDataBase;
+	private Group connectionInfo;
+	private Combo comboDataBase;
 	private Text tUser;
 	private Text tPassword;
 	private Text tPort;
@@ -47,7 +53,7 @@ public class Form extends Dialog {
 	private String version = "";
 	private String discription = "";
 	private String packageName = "";
-	private String dataBase = "";
+	private Integer dataBase = 0;
 	private String user = "";
 	private String password = "";
 	private String port = "";
@@ -66,28 +72,24 @@ public class Form extends Dialog {
 	protected Control createDialogArea(Composite parent) {
 
 		Composite container = (Composite) super.createDialogArea(parent);
-		GridLayout layout = new GridLayout(3, false);
+		GridLayout layout = new GridLayout(4, false);
 		layout.marginRight = 10;
 		layout.marginLeft = 10;
 		layout.verticalSpacing = 15;
 		container.setLayout(layout);
 
-		Label lblName = new Label(container, SWT.NONE);
-		lblName.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, false, false));
-		lblName.setText("Name:");
-
+		new Label(container, SWT.NONE).setText("Name");
 		tName = new Text(container, SWT.BORDER);
-		tName.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 2, 1));
-		tName.setText(name);
+		tName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		tName.setText(userData.getName());
 		tName.addModifyListener(e -> {
-			Text textWidget = (Text) e.getSource();
-			String userText = textWidget.getText();
-			name = userText;
+			name = ((Text) e.getSource()).getText();
 		});
 
+		// Location CheckBox
 		checkBoxLocation = new Button(container, SWT.CHECK);
 		checkBoxLocation.setText("Use Work Space");
-		checkBoxLocation.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 3, 1));
+		checkBoxLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
 		checkBoxLocation.setSelection(true);
 		checkBoxLocation.addSelectionListener(new SelectionAdapter() {
 			@Override
@@ -97,21 +99,17 @@ public class Form extends Dialog {
 		});
 
 		lblLocation = new Label(container, SWT.NONE);
-		lblLocation.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, false, false));
-		lblLocation.setText("Location:");
-
+		lblLocation.setText("Location");
 		tLocation = new Text(container, SWT.BORDER);
-		tLocation.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false));
+		tLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
 		tLocation.setText(System.getProperty("user.dir"));
 		tLocation.addModifyListener(e -> {
-			Text textWidget = (Text) e.getSource();
-			String userText = textWidget.getText();
-			location = userText;
+			location = ((Text) e.getSource()).getText();
 		});
 
 		buttonLocation = new Button(container, SWT.PUSH);
 		buttonLocation.setText("Browse");
-		buttonLocation.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, false, false));
+		buttonLocation.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 		buttonLocation.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -124,17 +122,84 @@ public class Form extends Dialog {
 
 		setLocationStatus(false);
 
-		Label lblPassword = new Label(container, SWT.NONE);
-		lblPassword.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, false, false));
-		lblPassword.setText("Password:");
+		new Label(container, SWT.NONE).setText("Group");
+		tGroup = new Text(container, SWT.BORDER);
+		tGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		tGroup.setText(userData.getGroup());
+		tGroup.addModifyListener(e -> {
+			group = ((Text) e.getSource()).getText();
+		});
 
-		tPassword = new Text(container, SWT.BORDER | SWT.PASSWORD);
-		tPassword.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false));
+		new Label(container, SWT.NONE).setText("Artifact");
+		tArtifact = new Text(container, SWT.BORDER);
+		tArtifact.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		tArtifact.setText(userData.getArtifact());
+		tArtifact.addModifyListener(e -> {
+			artifact = ((Text) e.getSource()).getText();
+		});
+
+		new Label(container, SWT.NONE).setText("Version");
+		tVersion = new Text(container, SWT.BORDER);
+		tVersion.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		tVersion.setText(userData.getVersion());
+		tVersion.addModifyListener(e -> {
+			version = ((Text) e.getSource()).getText();
+		});
+
+		new Label(container, SWT.NONE).setText("Discription");
+		tDiscription = new Text(container, SWT.BORDER);
+		tDiscription.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		tDiscription.setText(userData.getDiscription());
+		tDiscription.addModifyListener(e -> {
+			discription = ((Text) e.getSource()).getText();
+		});
+
+		new Label(container, SWT.NONE).setText("Package");
+		tPackageName = new Text(container, SWT.BORDER);
+		tPackageName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
+		tPackageName.setText(userData.getPackageName());
+		tPackageName.addModifyListener(e -> {
+			packageName = ((Text) e.getSource()).getText();
+		});
+
+// connectionInfo ---------------------------------------
+		connectionInfo = new Group(container, SWT.NULL);
+		connectionInfo.setText("Connection Information");
+		connectionInfo.setLayout(new GridLayout(4, false));
+		connectionInfo.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
+
+		new Label(connectionInfo, SWT.NONE).setText("Database");
+
+		comboDataBase = new Combo(connectionInfo, SWT.NULL);
+		comboDataBase.setItems(new String[] { "192.6.3.1", "192.6.3.8", "192.6.3.1 & 192.6.3.8", "192.6.3.12" });
+		comboDataBase.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		comboDataBase.select(userData.getDataBase());
+		comboDataBase.addModifyListener(e -> {
+			dataBase = ((Combo) e.getSource()).getSelectionIndex();
+		});
+
+		new Label(connectionInfo, SWT.NONE).setText("Port");
+		tPort = new Text(connectionInfo, SWT.BORDER);
+		tPort.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		tPort.setText(userData.getPort());
+		tPort.addModifyListener(e -> {
+			port = ((Text) e.getSource()).getText();
+		});
+
+		new Label(connectionInfo, SWT.NONE).setText("User Name");
+		tUser = new Text(connectionInfo, SWT.BORDER);
+		tUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		tUser.setText(userData.getUser());
+		tUser.addModifyListener(e -> {
+			user = ((Text) e.getSource()).getText();
+		});
+
+		new Label(connectionInfo, SWT.NONE).setText("Password:");
+		tPassword = new Text(connectionInfo, SWT.BORDER | SWT.PASSWORD);
+		tPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		tPassword.setText(password);
 		tPassword.addModifyListener(e -> {
-			Text textWidget = (Text) e.getSource();
-			String passwordText = textWidget.getText();
-			password = passwordText;
+			password = ((Text) e.getSource()).getText();
 		});
 		return container;
 	}
@@ -142,13 +207,13 @@ public class Form extends Dialog {
 	// override method to use "Login" as label for the OK button
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
-		createButton(parent, IDialogConstants.OK_ID, "Login", true);
+		createButton(parent, IDialogConstants.OK_ID, "Generate", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
 	}
 
 	@Override
 	protected Point getInitialSize() {
-		return new Point(450, 600);
+		return new Point(500, 550);
 	}
 
 	@Override
@@ -162,18 +227,6 @@ public class Form extends Dialog {
 		lblLocation.setEnabled(status);
 		tLocation.setEnabled(status);
 		buttonLocation.setEnabled(status);
-	}
-
-	public String getUser() {
-		return name;
-	}
-
-	public void setUser(String user) {
-		this.name = user;
-	}
-
-	public String getPassword() {
-		return password;
 	}
 
 	public String getName() {
@@ -208,6 +261,14 @@ public class Form extends Dialog {
 		this.artifact = artifact;
 	}
 
+	public String getVersion() {
+		return version;
+	}
+
+	public void setVersion(String version) {
+		this.version = version;
+	}
+
 	public String getDiscription() {
 		return discription;
 	}
@@ -224,11 +285,11 @@ public class Form extends Dialog {
 		this.packageName = packageName;
 	}
 
-	public String getDataBase() {
+	public Integer getDataBase() {
 		return dataBase;
 	}
 
-	public void setDataBase(String dataBase) {
+	public void setDataBase(Integer dataBase) {
 		this.dataBase = dataBase;
 	}
 
@@ -238,6 +299,18 @@ public class Form extends Dialog {
 
 	public void setPort(String port) {
 		this.port = port;
+	}
+
+	public String getUser() {
+		return user;
+	}
+
+	public void setUser(String user) {
+		this.user = user;
+	}
+
+	public String getPassword() {
+		return password;
 	}
 
 	public void setPassword(String password) {
