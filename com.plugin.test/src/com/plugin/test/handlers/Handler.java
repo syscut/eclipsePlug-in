@@ -1,24 +1,17 @@
 package com.plugin.test.handlers;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.URISyntaxException;
-import java.net.URL;
-
 import javax.inject.Named;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.di.annotations.Execute;
 import org.eclipse.e4.ui.services.IServiceConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
+import org.osgi.service.prefs.BackingStoreException;
+
+import com.plugin.test.encrypt.Encrypt;
 
 /**
  * <b>Warning</b> : As explained in <a href=
@@ -30,65 +23,34 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class Handler {
 
-	private static final String USER_DATA = "/com.plugin.test/src/com/plugin/test/data/UserData.java";
-
 	@Execute
 	public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell s) {
-		GetSourceInputStream getSourceInputStream = new GetSourceInputStream();
 		Form form = new Form(s);
+		Encrypt encrypt = new Encrypt();
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
 		if (form.open() == Window.OK) {
-			InputStream sourceStream;
-			String user = form.getUser();
-			String password = form.getPassword();
-			Integer d = form.getDataBase();
-			String database = "";
-			switch (d) {
-			case 0:
-				database = "192.6.3.1";
-				break;
-			case 1:
-				database = "192.6.3.8";
-				break;
-			case 2:
-				database = "192.6.3.1 & 192.6.3.8";
-				break;
-			case 3:
-				database = "192.6.3.12";
-				break;
-			default:
-				break;
-			}
-			sourceStream = getSourceInputStream.getSourceInputStream(USER_DATA);
-			URL resourceUrl = getClass().getResource(USER_DATA);
+			prefs.put("name", form.getName());
+			prefs.put("location", form.getLocation());
+			prefs.put("group", form.getGroup());
+			prefs.put("artifact", form.getArtifact());
+			prefs.put("version", form.getVersion());
+			prefs.put("discription", form.getDiscription());
+			prefs.put("packageName", form.getPackageName());
+			prefs.putInt("dataBase", form.getDataBase());
+			prefs.put("port", form.getPort());
+			prefs.put("user", form.getUser());
 			try {
-				File file = new File(resourceUrl.toURI());
-				BufferedReader reader = new BufferedReader(new InputStreamReader(sourceStream));
-				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)));
-				String line;
-				while ((line = reader.readLine()) != null) {
-					if (line.contains("name")) {
-						writer.write(
-								line.replaceAll("(private String name = \").*(\";)", "$1" + form.getName() + "$2"));
-					} else {
-						writer.write(line);
-					}
-					writer.newLine();
-				}
-				reader.close();
-				writer.close();
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				prefs.put("password", encrypt.encode(form.getPassword()));
+			} catch (Exception e) {
+				MessageDialog.openError(s, "Error", String.valueOf(e.getCause()));
+			}
+			try {
+				// prefs are automatically flushed during a plugin's "super.stop()".
+				prefs.flush();
+			} catch (BackingStoreException e1) {
+				MessageDialog.openError(s, "Error", String.valueOf(e1.getCause()));
 			}
 
-			MessageDialog.openInformation(s, "finish",
-					"name = " + form.getName() + "\n password = " + password + "\n database = " + database);
 		}
 
 	}

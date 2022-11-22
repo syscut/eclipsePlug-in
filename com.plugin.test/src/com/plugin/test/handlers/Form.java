@@ -1,7 +1,10 @@
 package com.plugin.test.handlers;
 
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -19,14 +22,20 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.service.prefs.BackingStoreException;
 
-import com.plugin.test.data.UserData;
+import com.plugin.test.encrypt.Encrypt;
 
 public class Form extends Dialog {
-	UserData userData = new UserData();
+
 	private Shell shell;
 
-	protected Form(Shell parentShell) {
+	private Encrypt encrypt = new Encrypt();
+
+	private IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
+	private IEclipsePreferences workSpacePrefs = InstanceScope.INSTANCE.getNode("org.eclipse.ui.ide");
+
+	public Form(Shell parentShell) {
 		super(parentShell);
 		this.shell = parentShell;
 	}
@@ -70,7 +79,11 @@ public class Form extends Dialog {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
-
+		try {
+			prefs.sync();
+		} catch (BackingStoreException e) {
+			MessageDialog.openError(shell, "Error", String.valueOf(e.getCause()));
+		}
 		Composite container = (Composite) super.createDialogArea(parent);
 		GridLayout layout = new GridLayout(4, false);
 		layout.marginRight = 10;
@@ -81,14 +94,16 @@ public class Form extends Dialog {
 		new Label(container, SWT.NONE).setText("Name");
 		tName = new Text(container, SWT.BORDER);
 		tName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		tName.setText(userData.getName());
+		tName.setText(prefs.get("name", ""));
+		name = prefs.get("name", "");
 		tName.addModifyListener(e -> {
 			name = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		// Location CheckBox
 		checkBoxLocation = new Button(container, SWT.CHECK);
-		checkBoxLocation.setText("Use Work Space");
+		checkBoxLocation.setText("Use Current Workspace");
 		checkBoxLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 4, 1));
 		checkBoxLocation.setSelection(true);
 		checkBoxLocation.addSelectionListener(new SelectionAdapter() {
@@ -102,9 +117,10 @@ public class Form extends Dialog {
 		lblLocation.setText("Location");
 		tLocation = new Text(container, SWT.BORDER);
 		tLocation.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1));
-		tLocation.setText(System.getProperty("user.dir"));
+
 		tLocation.addModifyListener(e -> {
 			location = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		buttonLocation = new Button(container, SWT.PUSH);
@@ -125,44 +141,54 @@ public class Form extends Dialog {
 		new Label(container, SWT.NONE).setText("Group");
 		tGroup = new Text(container, SWT.BORDER);
 		tGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		tGroup.setText(userData.getGroup());
+		tGroup.setText(prefs.get("group", "com.gfc"));
+		group = prefs.get("group", "com.gfc");
 		tGroup.addModifyListener(e -> {
 			group = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		new Label(container, SWT.NONE).setText("Artifact");
 		tArtifact = new Text(container, SWT.BORDER);
 		tArtifact.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		tArtifact.setText(userData.getArtifact());
+		tArtifact.setText(prefs.get("artifact", "projectID"));
+		artifact = prefs.get("artifact", "projectID");
 		tArtifact.addModifyListener(e -> {
 			artifact = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		new Label(container, SWT.NONE).setText("Version");
 		tVersion = new Text(container, SWT.BORDER);
 		tVersion.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		tVersion.setText(userData.getVersion());
+		tVersion.setText(prefs.get("version", "0.0.1-SNAPSHOT"));
+		version = prefs.get("version", "0.0.1-SNAPSHOT");
 		tVersion.addModifyListener(e -> {
 			version = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		new Label(container, SWT.NONE).setText("Discription");
 		tDiscription = new Text(container, SWT.BORDER);
 		tDiscription.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		tDiscription.setText(userData.getDiscription());
+		tDiscription.setText(prefs.get("discription", ""));
+		discription = prefs.get("discription", "");
 		tDiscription.addModifyListener(e -> {
 			discription = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		new Label(container, SWT.NONE).setText("Package");
 		tPackageName = new Text(container, SWT.BORDER);
 		tPackageName.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 3, 1));
-		tPackageName.setText(userData.getPackageName());
+		tPackageName.setText(prefs.get("packageName", "com.gfc"));
+		packageName = prefs.get("packageName", "com.gfc");
 		tPackageName.addModifyListener(e -> {
 			packageName = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
-// connectionInfo ---------------------------------------
+// connectionInfo ------------------------------------------------------
 		connectionInfo = new Group(container, SWT.NULL);
 		connectionInfo.setText("Connection Information");
 		connectionInfo.setLayout(new GridLayout(4, false));
@@ -173,7 +199,8 @@ public class Form extends Dialog {
 		comboDataBase = new Combo(connectionInfo, SWT.NULL);
 		comboDataBase.setItems(new String[] { "192.6.3.1", "192.6.3.8", "192.6.3.1 & 192.6.3.8", "192.6.3.12" });
 		comboDataBase.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		comboDataBase.select(userData.getDataBase());
+		comboDataBase.select(prefs.getInt("dataBase", 0));
+		dataBase = prefs.getInt("dataBase", 0);
 		comboDataBase.addModifyListener(e -> {
 			dataBase = ((Combo) e.getSource()).getSelectionIndex();
 		});
@@ -181,34 +208,48 @@ public class Form extends Dialog {
 		new Label(connectionInfo, SWT.NONE).setText("Port");
 		tPort = new Text(connectionInfo, SWT.BORDER);
 		tPort.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		tPort.setText(userData.getPort());
+		tPort.setText(prefs.get("port", "5000"));
+		port = prefs.get("port", "5000");
 		tPort.addModifyListener(e -> {
 			port = ((Text) e.getSource()).getText();
+			checkButton();
 		});
 
 		new Label(connectionInfo, SWT.NONE).setText("User Name");
 		tUser = new Text(connectionInfo, SWT.BORDER);
 		tUser.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		tUser.setText(userData.getUser());
+		tUser.setText(prefs.get("user", ""));
+		user = prefs.get("user", "");
 		tUser.addModifyListener(e -> {
 			user = ((Text) e.getSource()).getText();
+			checkButton();
 		});
+
+		String encodePassword = null;
+		try {
+			encodePassword = prefs.get("password", "").isBlank() ? "" : encrypt.decode(prefs.get("password", ""));
+		} catch (Exception e1) {
+			MessageDialog.openError(shell, "Error", String.valueOf(e1.getCause()));
+		}
 
 		new Label(connectionInfo, SWT.NONE).setText("Password:");
 		tPassword = new Text(connectionInfo, SWT.BORDER | SWT.PASSWORD);
 		tPassword.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
-		tPassword.setText(password);
+		tPassword.setText(encodePassword);
+		password = encodePassword;
 		tPassword.addModifyListener(e -> {
 			password = ((Text) e.getSource()).getText();
+			checkButton();
 		});
+
 		return container;
 	}
 
-	// override method to use "Login" as label for the OK button
 	@Override
 	protected void createButtonsForButtonBar(Composite parent) {
 		createButton(parent, IDialogConstants.OK_ID, "Generate", true);
 		createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+		checkButton();
 	}
 
 	@Override
@@ -218,8 +259,6 @@ public class Form extends Dialog {
 
 	@Override
 	protected void okPressed() {
-		name = tName.getText();
-		password = tPassword.getText();
 		super.okPressed();
 	}
 
@@ -227,6 +266,22 @@ public class Form extends Dialog {
 		lblLocation.setEnabled(status);
 		tLocation.setEnabled(status);
 		buttonLocation.setEnabled(status);
+		System.out.println(workSpacePrefs.get("RECENT_WORKSPACES", "XX"));
+		location = prefs.get("location", workSpacePrefs.get("RECENT_WORKSPACES", System.getProperty("user.dir")));
+		tLocation.setText(status ? location : System.getProperty("user.dir"));
+	}
+
+	protected void checkButton() {
+		if (getButton(IDialogConstants.OK_ID) == null) {
+			return;
+		}
+		if (name.isBlank() || location.isBlank() || group.isBlank() || artifact.isBlank() || version.isBlank()
+				|| discription.isBlank() || packageName.isBlank() || port.isBlank() || user.isBlank()
+				|| password.isBlank()) {
+			getButton(IDialogConstants.OK_ID).setEnabled(false);
+		} else {
+			getButton(IDialogConstants.OK_ID).setEnabled(true);
+		}
 	}
 
 	public String getName() {
