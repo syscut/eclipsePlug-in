@@ -1,5 +1,6 @@
 package com.plugin.test.handlers;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.Dialog;
@@ -29,11 +30,9 @@ import com.plugin.test.encrypt.Encrypt;
 public class Form extends Dialog {
 
 	private Shell shell;
-
 	private Encrypt encrypt = new Encrypt();
 
 	private IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
-	private IEclipsePreferences workSpacePrefs = InstanceScope.INSTANCE.getNode("org.eclipse.ui.ide");
 
 	public Form(Shell parentShell) {
 		super(parentShell);
@@ -66,6 +65,8 @@ public class Form extends Dialog {
 	private String user = "";
 	private String password = "";
 	private String port = "";
+
+	private static final String RECENT_WORKSPACES = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 
 	@Override
 	protected void configureShell(Shell parent) {
@@ -266,9 +267,8 @@ public class Form extends Dialog {
 		lblLocation.setEnabled(status);
 		tLocation.setEnabled(status);
 		buttonLocation.setEnabled(status);
-		System.out.println(workSpacePrefs.get("RECENT_WORKSPACES", "XX"));
-		location = prefs.get("location", workSpacePrefs.get("RECENT_WORKSPACES", System.getProperty("user.dir")));
-		tLocation.setText(status ? location : System.getProperty("user.dir"));
+		tLocation.setText(status ? System.getProperty("user.dir") : RECENT_WORKSPACES.replaceAll("/", "\\\\"));
+		location = tLocation.getText().replaceAll("\\\\", "/");
 	}
 
 	protected void checkButton() {

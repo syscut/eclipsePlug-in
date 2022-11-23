@@ -2,6 +2,7 @@ package com.plugin.test.handlers;
 
 import javax.inject.Named;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.e4.core.di.annotations.Execute;
@@ -11,7 +12,9 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.plugin.test.downloadsource.DownloadAndUnZip;
 import com.plugin.test.encrypt.Encrypt;
+import com.plugin.test.importproject.ImportMavenProject;
 
 /**
  * <b>Warning</b> : As explained in <a href=
@@ -24,8 +27,10 @@ import com.plugin.test.encrypt.Encrypt;
 public class Handler {
 
 	@Execute
-	public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell s) {
+	public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell s) throws Exception {
 		Form form = new Form(s);
+		ImportMavenProject importMavenProject = new ImportMavenProject();
+		DownloadAndUnZip downloadAndUnZip = new DownloadAndUnZip(s);
 		Encrypt encrypt = new Encrypt();
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
 		if (form.open() == Window.OK) {
@@ -49,6 +54,18 @@ public class Handler {
 				prefs.flush();
 			} catch (BackingStoreException e1) {
 				MessageDialog.openError(s, "Error", String.valueOf(e1.getCause()));
+			}
+
+			if (downloadAndUnZip.download()) {
+				IProject iProject = importMavenProject
+						.importExistingMavenProjects(form.getLocation() + "/" + form.getName(), form.getName());
+				if (!iProject.exists()) {
+					MessageDialog.openError(s, "Error", "Import Maven Project Faild");
+					return;
+				}
+			} else {
+				MessageDialog.openError(s, "Error", "Download Faild");
+				return;
 			}
 
 		}
