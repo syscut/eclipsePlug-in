@@ -29,9 +29,9 @@ import com.gfc.plugin.importproject.ImportMavenProject;
 public class Handler {
 
 	@Execute
-	synchronized public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell s) throws Exception {
+	public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell s) throws Exception {
 		Form form = new Form(s);
-		ImportMavenProject importMavenProject = new ImportMavenProject();
+		ImportMavenProject importMavenProject = new ImportMavenProject(s);
 		DownloadAndUnZip downloadAndUnZip = new DownloadAndUnZip(s);
 		DbSetting dbSetting = new DbSetting(s);
 		Encrypt encrypt = new Encrypt();
@@ -70,12 +70,15 @@ public class Handler {
 				throw new Exception("Handler line 74");
 			}
 
-			String ok = importMavenProject.importExistingMavenProjects(form.getLocation() + "/" + form.getName(),
+			String status = importMavenProject.importExistingMavenProjects(form.getLocation() + "/" + form.getName(),
 					form.getName());
-			System.out.println(ok);
-			MessageDialog.openInformation(s, "Create Project Success", "Import finished !");
-			File deleteFile = new File(form.getLocation() + "/" + form.getName() + ".zip");
-			deleteFile.delete();
+			if (status.contains("finished")) {
+				File deleteFile = new File(form.getLocation() + "/" + form.getName() + ".zip");
+				deleteFile.delete();
+				MessageDialog.openInformation(s, "Create Project Success", "Import finished !");
+			} else {
+				MessageDialog.openError(s, "Error", "Import faild ...");
+			}
 		}
 
 	}

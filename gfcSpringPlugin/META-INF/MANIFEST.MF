@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: gfSpringBootInitializer
+Bundle-Name: gfcSpringBootInitializer
 Bundle-SymbolicName: gfcSpringPlugin;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: com.gfc.plugin.Activator
