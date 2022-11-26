@@ -7,7 +7,6 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.m2e.core.MavenPlugin;
@@ -22,6 +21,7 @@ import org.eclipse.ui.IWorkingSet;
 @SuppressWarnings("restriction")
 public class ImportMavenProject {
 	Shell shell;
+	Integer status;
 
 	public ImportMavenProject(Shell shell) {
 		this.shell = shell;
@@ -29,12 +29,20 @@ public class ImportMavenProject {
 
 	final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(shell);
 
-	public String importExistingMavenProjects(String path, String projectName) throws Exception {
+	public Integer importExistingMavenProjects(String path, String projectName) throws Exception {
 		List<String> folders = new LinkedList<String>();
 		folders.add(path);
 		MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
 		LocalProjectScanner scanner = new LocalProjectScanner(folders, false, modelManager);
-		scanner.run(new NullProgressMonitor());
+
+		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				scanner.run(monitor);
+				monitor.done();
+			}
+		});
+
 		List<MavenProjectInfo> infos = new ArrayList<MavenProjectInfo>();
 		infos.addAll(scanner.getProjects());
 		for (MavenProjectInfo info : scanner.getProjects()) {
@@ -43,44 +51,18 @@ public class ImportMavenProject {
 		ImportMavenProjectsJob job = new ImportMavenProjectsJob(infos, new ArrayList<IWorkingSet>(),
 				new ProjectImportConfiguration());
 		job.setRule(MavenPlugin.getProjectConfigurationManager().getRule());
-//		job.schedule();
-//		IStatus status = job.getResult();
-//		while (status == null) {
-//			System.out.println("status is : " + status);
-//			Thread.sleep(1000);
-//			status = job.getResult();
-//		}
 
-		progressMonitorDialog.run(false, false, new IRunnableWithProgress() {
+		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				Integer nowRunning = 0;
-				monitor.setTaskName("import");
-				monitor.beginTask("import", 100);
-				monitor.worked(nowRunning);
-
-				IStatus status = job.runInWorkspace(monitor);
-				System.out.println(status.getCode());
-				while (status == null) {
-					nowRunning = nowRunning < 99 ? nowRunning + 9 : nowRunning;
-					monitor.worked(nowRunning);
-					Thread.sleep(500);
-					status = job.getResult();
-					System.out.println(status.getCode());
-				}
-				monitor.worked(100);
+				IStatus istatus = job.runInWorkspace(monitor);
 				monitor.done();
+				status = istatus.getCode();
 			}
 
 		});
 
-		return "finished";
-//		if (status.isOK()) {
-//			Thread.sleep(500);
-//			return "finished";
-//		} else {
-//			return "faild";
-//		}
+		return status;
 	}
 
 //	private static IProject waitForProject(String projectName) throws Exception {

@@ -11,9 +11,12 @@ import java.nio.channels.ReadableByteChannel;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
 
 public class DownloadAndUnZip {
@@ -32,27 +35,44 @@ public class DownloadAndUnZip {
 
 	private IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
 
-	synchronized public Boolean download() throws Exception {
+	public void download() throws Exception {
+		final String zipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo") + ".zip";
+		final String unZipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo");
+		final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(shell);
 		final String url = BASE_URL + "name=" + prefs.get("name", "demo") + "&groupId="
 				+ prefs.get("group", "com.example") + "&artifactId=" + prefs.get("artifact", "demo") + "&version="
 				+ prefs.get("version", "0.0.1-SNAPSHOT") + "&description="
 				+ prefs.get("discription", "Demo project for Spring Boot") + "&packageName="
 				+ prefs.get("packageName", "com.example.demo") + TYPE + PACKAGING + JAVA_VERSION + LANGUAGE
 				+ BOOT_VERSION + DEPENDENCIES;
-		final String zipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo") + ".zip";
-		ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
-		@SuppressWarnings("resource")
-		FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
-		@SuppressWarnings("unused")
-		FileChannel fileChannel = fileOutputStream.getChannel();
-		fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
-		final String unZipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo");
-		unZip(zipFile, unZipFile);
 
-		return new File(unZipFile).exists();
+		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
+			@Override
+			public void run(IProgressMonitor monitor) {
+				monitor.setTaskName("Preparing Project");
+				monitor.beginTask("Now Progress ...", 3);
+				try {
+					ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
+					monitor.worked(1);
+					@SuppressWarnings("resource")
+					FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
+					@SuppressWarnings("unused")
+					FileChannel fileChannel = fileOutputStream.getChannel();
+					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
+					monitor.worked(2);
+					unZip(zipFile, unZipFile);
+					monitor.worked(3);
+				} catch (Exception e) {
+					e.printStackTrace();
+					MessageDialog.openError(shell, "Error", "Prepare faild ...");
+				}
+				monitor.done();
+			}
+		});
+
 	}
 
-	synchronized public void unZip(String file, String dest) throws IOException {
+	public void unZip(String file, String dest) throws IOException {
 		File destDir = new File(dest);
 		byte[] buffer = new byte[1024];
 		ZipInputStream zis = new ZipInputStream(new FileInputStream(file));

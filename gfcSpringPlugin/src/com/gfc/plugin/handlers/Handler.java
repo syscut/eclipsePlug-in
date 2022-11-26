@@ -17,6 +17,7 @@ import com.gfc.plugin.connection.DbSetting;
 import com.gfc.plugin.downloadsource.DownloadAndUnZip;
 import com.gfc.plugin.encrypt.Encrypt;
 import com.gfc.plugin.importproject.ImportMavenProject;
+import com.gfc.plugin.runtest.RunMavenTest;
 
 /**
  * <b>Warning</b> : As explained in <a href=
@@ -35,6 +36,7 @@ public class Handler {
 		DownloadAndUnZip downloadAndUnZip = new DownloadAndUnZip(s);
 		DbSetting dbSetting = new DbSetting(s);
 		Encrypt encrypt = new Encrypt();
+		RunMavenTest runMavenTest = new RunMavenTest();
 		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
 		if (form.open() == Window.OK) {
 			prefs.put("name", form.getName());
@@ -61,21 +63,16 @@ public class Handler {
 				throw new Exception("Handler line 60");
 			}
 
-			if (downloadAndUnZip.download()) {
+			downloadAndUnZip.download();
 
-				dbSetting.deployFiles(prefs.getInt("dataBase", 3), prefs);
+			dbSetting.deployFiles(prefs.getInt("dataBase", 3), prefs);
 
-			} else {
-				MessageDialog.openError(s, "Error", "download faild");
-				throw new Exception("Handler line 74");
-			}
-
-			String status = importMavenProject.importExistingMavenProjects(form.getLocation() + "/" + form.getName(),
+			Integer status = importMavenProject.importExistingMavenProjects(form.getLocation() + "/" + form.getName(),
 					form.getName());
-			if (status.contains("finished")) {
+			if (status == 0) {
 				File deleteFile = new File(form.getLocation() + "/" + form.getName() + ".zip");
 				deleteFile.delete();
-				MessageDialog.openInformation(s, "Create Project Success", "Import finished !");
+				runMavenTest.runCommandAtPath(form.getLocation() + "/" + form.getName() + "/");
 			} else {
 				MessageDialog.openError(s, "Error", "Import faild ...");
 			}
