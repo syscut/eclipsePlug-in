@@ -32,7 +32,7 @@ public class Form extends Dialog {
 	private Shell shell;
 	private Encrypt encrypt = new Encrypt();
 
-	private IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
+	private IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.gfc.plugin");
 
 	public Form(Shell parentShell) {
 		super(parentShell);

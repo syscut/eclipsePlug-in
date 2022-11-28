@@ -17,6 +17,6 @@ Require-Bundle: javax.inject,
  org.eclipse.m2e.core.ui;bundle-version="2.0.0",
  org.eclipse.ui.console;bundle-version="3.11.300"
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Automatic-Module-Name: com.plugin.test
+Automatic-Module-Name: com.gfc.plugin
 Import-Package: javax.annotation;version="1.2.0"
 Bundle-ActivationPolicy: lazy

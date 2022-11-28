@@ -13,7 +13,6 @@ import java.util.zip.ZipInputStream;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -28,12 +27,12 @@ public class DownloadAndUnZip {
 	private static final String BOOT_VERSION = "bootVersion=2.7.5&";
 	private static final String DEPENDENCIES = "dependencies=lombok&dependencies=configuration-processor&dependencies=data-jpa&dependencies=web";
 	private Shell shell;
+	private IEclipsePreferences prefs;
 
-	public DownloadAndUnZip(Shell shell) {
+	public DownloadAndUnZip(Shell shell, IEclipsePreferences prefs) {
 		this.shell = shell;
+		this.prefs = prefs;
 	}
-
-	private IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
 
 	public void download() throws Exception {
 		final String zipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo") + ".zip";
@@ -54,12 +53,14 @@ public class DownloadAndUnZip {
 				try {
 					ReadableByteChannel readableByteChannel = Channels.newChannel(new URL(url).openStream());
 					monitor.worked(1);
+					monitor.subTask("Downloading...");
 					@SuppressWarnings("resource")
 					FileOutputStream fileOutputStream = new FileOutputStream(zipFile);
 					@SuppressWarnings("unused")
 					FileChannel fileChannel = fileOutputStream.getChannel();
 					fileOutputStream.getChannel().transferFrom(readableByteChannel, 0, Long.MAX_VALUE);
 					monitor.worked(2);
+					monitor.subTask("Decompressing...");
 					unZip(zipFile, unZipFile);
 					monitor.worked(3);
 				} catch (Exception e) {

@@ -31,13 +31,14 @@ public class Handler {
 
 	@Execute
 	public void execute(@Named(IServiceConstants.ACTIVE_SHELL) Shell s) throws Exception {
+		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.gfc.plugin");
 		Form form = new Form(s);
 		ImportMavenProject importMavenProject = new ImportMavenProject(s);
-		DownloadAndUnZip downloadAndUnZip = new DownloadAndUnZip(s);
+		DownloadAndUnZip downloadAndUnZip = new DownloadAndUnZip(s, prefs);
 		DbSetting dbSetting = new DbSetting(s);
 		Encrypt encrypt = new Encrypt();
 		RunMavenTest runMavenTest = new RunMavenTest();
-		IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode("com.plugin.test");
+
 		if (form.open() == Window.OK) {
 			prefs.put("name", form.getName());
 			prefs.put("location", form.getLocation());
@@ -69,6 +70,7 @@ public class Handler {
 
 			Integer status = importMavenProject.importExistingMavenProjects(form.getLocation() + "/" + form.getName(),
 					form.getName());
+
 			if (status == 0) {
 				File deleteFile = new File(form.getLocation() + "/" + form.getName() + ".zip");
 				deleteFile.delete();

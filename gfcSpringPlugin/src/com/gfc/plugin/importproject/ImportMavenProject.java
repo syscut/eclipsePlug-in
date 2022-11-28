@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.m2e.core.MavenPlugin;
@@ -35,13 +36,7 @@ public class ImportMavenProject {
 		MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
 		LocalProjectScanner scanner = new LocalProjectScanner(folders, false, modelManager);
 
-		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
-			@Override
-			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				scanner.run(monitor);
-				monitor.done();
-			}
-		});
+		scanner.run(new NullProgressMonitor());
 
 		List<MavenProjectInfo> infos = new ArrayList<MavenProjectInfo>();
 		infos.addAll(scanner.getProjects());
@@ -55,8 +50,8 @@ public class ImportMavenProject {
 		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-				IStatus istatus = job.runInWorkspace(monitor);
-				monitor.done();
+				IStatus istatus = job.run(monitor);
+
 				status = istatus.getCode();
 			}
 
