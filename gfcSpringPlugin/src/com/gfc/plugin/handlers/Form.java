@@ -80,6 +80,7 @@ public class Form extends Dialog {
 
 	@Override
 	protected Control createDialogArea(Composite parent) {
+
 		try {
 			prefs.sync();
 		} catch (BackingStoreException e) {
@@ -262,6 +263,24 @@ public class Form extends Dialog {
 	protected void okPressed() {
 		super.okPressed();
 	}
+
+//	private FocusListener showMessage(String msg) {
+//		final Ui ui = new Ui();
+//		return new FocusListener() {
+//
+//			@Override
+//			public void focusGained(FocusEvent e) {
+//				ui.getStatusLine().setMessage(msg);
+//
+//			}
+//
+//			@Override
+//			public void focusLost(FocusEvent e) {
+//				ui.getStatusLine().setMessage("");
+//
+//			}
+//		};
+//	}
 
 	protected void setLocationStatus(Boolean status) {
 		lblLocation.setEnabled(status);

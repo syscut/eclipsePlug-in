@@ -14,9 +14,10 @@ import java.util.zip.ZipInputStream;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.swt.widgets.Shell;
+
+import com.gfc.plugin.ui.Ui;
 
 public class DownloadAndUnZip {
 	private static final String BASE_URL = "https://start.spring.io/starter.zip?";
@@ -37,7 +38,7 @@ public class DownloadAndUnZip {
 	public void download() throws Exception {
 		final String zipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo") + ".zip";
 		final String unZipFile = prefs.get("location", "") + "/" + prefs.get("name", "demo");
-		final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(shell);
+		final Ui ui = new Ui();
 		final String url = BASE_URL + "name=" + prefs.get("name", "demo") + "&groupId="
 				+ prefs.get("group", "com.example") + "&artifactId=" + prefs.get("artifact", "demo") + "&version="
 				+ prefs.get("version", "0.0.1-SNAPSHOT") + "&description="
@@ -45,7 +46,7 @@ public class DownloadAndUnZip {
 				+ prefs.get("packageName", "com.example.demo") + TYPE + PACKAGING + JAVA_VERSION + LANGUAGE
 				+ BOOT_VERSION + DEPENDENCIES;
 
-		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
+		ui.getWorkbenchWindow().run(true, false, new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) {
 				monitor.setTaskName("Preparing Project");

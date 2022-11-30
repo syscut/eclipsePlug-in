@@ -8,7 +8,6 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.MavenModelManager;
@@ -19,6 +18,8 @@ import org.eclipse.m2e.core.ui.internal.wizards.ImportMavenProjectsJob;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkingSet;
 
+import com.gfc.plugin.ui.Ui;
+
 @SuppressWarnings("restriction")
 public class ImportMavenProject {
 	Shell shell;
@@ -28,7 +29,7 @@ public class ImportMavenProject {
 		this.shell = shell;
 	}
 
-	final ProgressMonitorDialog progressMonitorDialog = new ProgressMonitorDialog(shell);
+	private final Ui ui = new Ui();
 
 	public Integer importExistingMavenProjects(String path, String projectName) throws Exception {
 		List<String> folders = new LinkedList<String>();
@@ -47,14 +48,15 @@ public class ImportMavenProject {
 				new ProjectImportConfiguration());
 		job.setRule(MavenPlugin.getProjectConfigurationManager().getRule());
 
-		progressMonitorDialog.run(true, false, new IRunnableWithProgress() {
+		ui.getWorkbenchWindow().run(true, false, new IRunnableWithProgress() {
 			@Override
 			public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				monitor.done();
 				IStatus istatus = job.run(monitor);
 
 				status = istatus.getCode();
-			}
 
+			};
 		});
 
 		return status;
